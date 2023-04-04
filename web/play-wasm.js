@@ -6,14 +6,20 @@ var module, instance;
     console.log(module);
     console.log("module imports: ", WebAssembly.Module.imports(module));    
     console.log("module exports: ", WebAssembly.Module.exports(module));
-    const imports = { "spoonfed": { complicated } };
+    const imports = { "spoonfed": { log_wasm_string } };
     instance = new WebAssembly.Instance(module, imports);
     console.log("instance.exports: ", instance.exports);
     console.log("step(10) = " + instance.exports.step(10));
     console.log("step(11) = " + instance.exports.step(11));
 })();
 
-function complicated(i) {
-    console.log(`Called from wasm: complicated(${i})\n\nstack:\n${(new Error).stack}`);
-    return i * 3 + 1;
+function log_wasm_string(ptr, len) {
+    console.log(`Called from wasm: complicated(${ptr}, ${len})\n\nstack:\n${(new Error).stack}`);
+    console.log(`String contents: ${fetch_wasm_string(instance, ptr, len)}`);
+}
+
+
+const utf8_decoder = new TextDecoder();
+function fetch_wasm_string(instance, ptr, len) {
+    return utf8_decoder.decode(new DataView(instance.exports.memory.buffer, ptr, len))
 }

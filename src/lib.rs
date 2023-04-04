@@ -1,20 +1,20 @@
-#![no_std]
-
 #[no_mangle]
 pub extern "C" fn step(i: u32) -> u32 {
+    log_string(&format!("step called with {}", i));
     if i & 1 == 0 {
         i / 2
     } else {
-        unsafe { complicated(i) }
+        i * 3 + 1
     }
 }
 
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
+fn log_string(s: &str) {
+    unsafe {
+        log_wasm_string(s.as_ptr() as u32, s.len() as u32);
+    }
 }
 
 #[link(wasm_import_module = "spoonfed")]
 extern "C" {
-    fn complicated(i: u32) -> u32;
+    fn log_wasm_string(ptr: u32, len: u32);
 }
